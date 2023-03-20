@@ -1,0 +1,197 @@
+<html>
+<head>
+	<title>Test Record</title>
+	<script>
+
+  		const handleSuccess = function(stream) {
+
+			const startButton = document.getElementById('start');
+			const stopButton = document.getElementById('stop');
+			const player = document.getElementById('player');
+
+			const audioThreshold = 100;
+			const swidth = 2;
+			const shortNormalize = 1.0 / 32768.0;
+			const periodOfSilence = 2;
+
+    			const options = {mimeType: 'audio/webm'};
+    			const recordedChunks = [];
+    			const mediaRecorder = new MediaRecorder(stream, options);
+
+    			const audioContext = new AudioContext();
+    			const audioStreamSource = audioContext.createMediaStreamSource(stream);
+    			const analyser = audioContext.createAnalyser();
+
+    			const bufferLength = analyser.frequencyBinCount;
+    			const domainData = new Uint8Array(bufferLength);
+
+			let currentTime = Date.now() / 1000;
+			let endTime = currentTime + periodOfSilence;
+
+			let reqAnimation;
+
+			audioStreamSource.connect(analyser);
+
+const rms = function(frame) {
+  const count = frame.length / swidth;
+  const format = `%dh` % count;
+  const shorts = new Int16Array(frame.buffer.slice(frame.byteOffset, frame.byteOffset + frame.byteLength));
+
+  let sumSquares = 0.0;
+
+  for (const sample of shorts) {
+    const n = sample * shortNormalize;
+    sumSquares += n * n;
+  }
+  const rms = Math.pow(sumSquares / count, 0.5);
+
+  return rms * 1000;
+};
+
+    			mediaRecorder.addEventListener('dataavailable', function(e) {
+      			if (e.data.size > 0) recordedChunks.push(e.data);
+    			});
+
+    const detectSound = function() {
+
+      analyser.getByteFrequencyData(domainData);
+	const rmsVal = rms(domainData);
+
+	if (currentTime >= endTime) {
+		mediaRecorder.stop();
+		return;
+	}
+
+	if (rmsVal > audioThreshold) {
+		endTime = (Date.now() / 1000) + periodOfSilence;
+	}
+
+	currentTime = Date.now() / 1000;
+      reqAnimation = window.requestAnimationFrame(detectSound);
+    };
+
+   			mediaRecorder.addEventListener('stop', function() {
+
+				window.cancelAnimationFrame(reqAnimation);
+				audioContext.close()
+				.then(
+					function() {
+						startButton.removeAttribute("disabled");
+					}
+				);
+
+				const utteranceBlob = new Blob([recordedChunks], {type: "audio/webm"});
+      				const url = URL.createObjectURL(utteranceBlob);
+    				player.src = url;
+
+				console.log("Stopped recording.");
+
+				const formData = new FormData();
+				formData.append("utterance_file", new File(recordedChunks, "test.webm"));
+
+				getUtteranceData(formData);
+
+				const formData2 = new FormData();
+				formData2.append("utterance_text", document.getElementById("utteranceBox").value);
+
+				getJSONResultData(formData2);
+    			});
+
+			stopButton.addEventListener("click", function() {
+				mediaRecorder.stop();
+			});
+
+			startButton.setAttribute("disabled", "true");
+    			mediaRecorder.start();
+
+			reqAnimation = window.requestAnimationFrame(detectSound);
+  		};
+
+		const startRecord = function() {
+	  		navigator.mediaDevices
+    				.getUserMedia({audio: true, video: false})
+    				.then(handleSuccess);
+		};
+
+
+		function getUtteranceData(data) {
+			const url = "/upload_utterance";
+			const method = "POST";
+			const target = "utteranceBox";
+			fetch(url,
+				{
+					"method": method.toUpperCase(),
+					"body": data
+				}
+			).then(
+				response => response.json()
+			).then(
+				function(data) {
+					document.getElementById(target).value = data["text"];
+				}
+			);
+		}
+
+		function getJSONResultData(data) {
+			const url = "/get_json_translation";
+			const method = "POST";
+			const target = "jsonDataBox";
+			fetch(url,
+				{
+					"method": method.toUpperCase(),
+					"body": data
+				}
+			).then(
+				response => response.json()
+			).then(
+				function(data) {
+					document.getElementById(target).value = data["choices"][0]["text"];
+					dataJSON = JSON.parse(data["choices"][0]["text"]);
+					for (key in dataJSON) {
+						if (dataJSON[key]) {
+							document.getElementById(key).value = dataJSON[key];
+						}
+					}
+				}
+			);
+		}
+	</script>
+</head>
+<body>
+
+<audio id="player" controls></audio><br />
+<input type="button" value="Start" id="start" onclick="startRecord();" />
+<input type="button" value="Stop" id="stop" />
+<p>
+<textarea id="utteranceBox"></textarea>
+<p>
+<textarea id="jsonDataBox"></textarea>
+<p>
+<table>
+	<tr>
+		<td>Blood Pressure Systolic (mmHg): </td>
+		<td><input id="blood_pressure_systolic" name="blood_pressure_systolic"></td>
+	</tr>
+	<tr>
+		<td>Blood Pressure Diastolic (mmHg): </td>
+		<td><input id="blood_pressure_diastolic" name="blood_pressure_diastolic"></td>
+	</tr>
+	<tr>
+		<td>Heart Rate (Beats per Minute): </td>
+		<td><input id="heart_rate" name="heart_rate"></td>
+	</tr>
+	<tr>
+		<td>Respiratory Rate (Breaths per Minute): </td>
+		<td><input id="respiratory_rate" name="respiratory_rate"></td>
+	</tr>
+	<tr>
+		<td>Height (centimeters): </td>
+		<td><input id="height" name="height"></td>
+	</tr>
+	<tr>
+		<td>Weight (kilograms): </td>
+		<td><input id="weight" name="weight"></td>
+	</tr>
+</table>
+</body>
+</html>
