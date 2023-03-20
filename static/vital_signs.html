@@ -3,7 +3,7 @@
 	<title>Test Record</title>
 	<script>
 
-  		const handleSuccess = function(stream) {
+		const handleSuccess = function(stream) {
 
 			const startButton = document.getElementById('start');
 			const stopButton = document.getElementById('stop');
@@ -14,16 +14,16 @@
 			const shortNormalize = 1.0 / 32768.0;
 			const periodOfSilence = 2;
 
-    			const options = {mimeType: 'audio/webm'};
-    			const recordedChunks = [];
-    			const mediaRecorder = new MediaRecorder(stream, options);
+			const options = {mimeType: 'audio/webm'};
+			const recordedChunks = [];
+			const mediaRecorder = new MediaRecorder(stream, options);
 
-    			const audioContext = new AudioContext();
-    			const audioStreamSource = audioContext.createMediaStreamSource(stream);
-    			const analyser = audioContext.createAnalyser();
+			const audioContext = new AudioContext();
+			const audioStreamSource = audioContext.createMediaStreamSource(stream);
+			const analyser = audioContext.createAnalyser();
 
-    			const bufferLength = analyser.frequencyBinCount;
-    			const domainData = new Uint8Array(bufferLength);
+			const bufferLength = analyser.frequencyBinCount;
+			const domainData = new Uint8Array(bufferLength);
 
 			let currentTime = Date.now() / 1000;
 			let endTime = currentTime + periodOfSilence;
@@ -32,43 +32,43 @@
 
 			audioStreamSource.connect(analyser);
 
-const rms = function(frame) {
-  const count = frame.length / swidth;
-  const format = `%dh` % count;
-  const shorts = new Int16Array(frame.buffer.slice(frame.byteOffset, frame.byteOffset + frame.byteLength));
+			const rms = function(frame) {
+				const count = frame.length / swidth;
+				const format = `%dh` % count;
+				const shorts = new Int16Array(frame.buffer.slice(frame.byteOffset, frame.byteOffset + frame.byteLength));
 
-  let sumSquares = 0.0;
+				let sumSquares = 0.0;
 
-  for (const sample of shorts) {
-    const n = sample * shortNormalize;
-    sumSquares += n * n;
-  }
-  const rms = Math.pow(sumSquares / count, 0.5);
+				for (const sample of shorts) {
+					const n = sample * shortNormalize;
+					sumSquares += n * n;
+				}
+				const rms = Math.pow(sumSquares / count, 0.5);
 
-  return rms * 1000;
-};
+				return rms * 1000;
+			};
 
     			mediaRecorder.addEventListener('dataavailable', function(e) {
       			if (e.data.size > 0) recordedChunks.push(e.data);
     			});
 
-    const detectSound = function() {
+			const detectSound = function() {
 
-      analyser.getByteFrequencyData(domainData);
-	const rmsVal = rms(domainData);
+				analyser.getByteFrequencyData(domainData);
+				const rmsVal = rms(domainData);
 
-	if (currentTime >= endTime) {
-		mediaRecorder.stop();
-		return;
-	}
+				if (currentTime >= endTime) {
+					mediaRecorder.stop();
+					return;
+				}
 
-	if (rmsVal > audioThreshold) {
-		endTime = (Date.now() / 1000) + periodOfSilence;
-	}
+				if (rmsVal > audioThreshold) {
+					endTime = (Date.now() / 1000) + periodOfSilence;
+				}
 
-	currentTime = Date.now() / 1000;
-      reqAnimation = window.requestAnimationFrame(detectSound);
-    };
+				currentTime = Date.now() / 1000;
+				reqAnimation = window.requestAnimationFrame(detectSound);
+			};
 
    			mediaRecorder.addEventListener('stop', function() {
 
