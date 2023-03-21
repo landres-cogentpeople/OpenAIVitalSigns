@@ -10,6 +10,7 @@ The OpenAIVitalSigns project relies on the following prerequisites:
 * Git
 * pip for installation of Python modules
 * An OpenAI API Key
+* (optional) venv for installation of Python modules in a virtual environment
 
 ## Installation
 
