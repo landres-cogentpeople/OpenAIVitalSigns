@@ -78,6 +78,14 @@ venv\Scripts\activate.bat
 python app.py
 ```
 
+## Using the application
+
+* After starting the server application, open a web browser to the following web address
+
+[http://localhost:5000/static/vital_signs.html](http://localhost:5000/static/vital_signs.html)
+
+* NOTE: The security context makes it so that you can only visit this page if the server is run on localhost or a page using HTTPS.
+
 ## Stopping the application
 
 * To stop the application, type Ctrl-C
