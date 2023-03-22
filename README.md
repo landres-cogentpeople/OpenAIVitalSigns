@@ -43,9 +43,8 @@ pip install -r requirements.txt
 
 ## Configuration
 
-* Edit the "apiKey.txt" file to include the OpenAI API key.
+* Create a file named "apiKey.txt" to include the OpenAI API key.
 * In this installation, you can use your favorite editor.  However, for this example we will be using Windows Notepad.
-* Open the file for editing.
 
 ```bash
 notepad apiKey.txt
