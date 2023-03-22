@@ -22,14 +22,14 @@ cd OpenAIVitalSigns
 git pull
 ```
 
-* You can create a virtual environment to run the application (This step is optional).
+* You can create a virtual environment to run the application in Linux or MacOS (This step is optional).
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-* NOTE: In Windows Command Shell, you will have to replace the previous commands with the following:
+* On in Windows Command Shell:
 ```
 python -m venv venv
 venv\Scripts\activate.bat
