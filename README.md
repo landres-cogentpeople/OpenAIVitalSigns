@@ -29,7 +29,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-* On in Windows Command Shell:
+* Or in Windows Command Shell:
 ```
 python -m venv venv
 venv\Scripts\activate.bat
@@ -62,13 +62,13 @@ notepad apiKey.txt
 cd OpenAIVitalSigns
 ```
 
-* If you installed the Python module dependencies in a virtual environment (after following the optional venv step), you will need to ensure that you source the virtual environment.
+* If you installed the Python module dependencies in a virtual environment (after following the optional venv step), you will need to ensure that you source the virtual environment in Linux or MacOS.
 
 ```bash
 source venv/bin/activate
 ```
 
-* NOTE: In Windows Command Shell, you will have to replace the previous command with the following:
+* In Windows Command Shell, you will have to replace the previous command with the following:
 ```
 venv\Scripts\activate.bat
 ```
