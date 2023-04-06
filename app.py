@@ -36,38 +36,9 @@ def create_app(test_config=None):
         fileline = filein.readline()
         openai.api_key = fileline.strip()
 
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
-
     @app.route("/static/<path:path>")
     def sendStaticFile(path):
         return send_from_directory("static", path)
-
-    @app.route("/upload_utterance", methods=["POST"])
-    def uploadUtterance():
-
-        transcript = None
-
-        if not os.path.exists("uploads"):
-            os.makedirs("uploads")
-
-        try:
-            os.remove("uploads/utterance.webm")
-        except FileNotFoundError as fnfe:
-            pass
-
-        request.files["utterance_file"].save("uploads/utterance.webm")
-        with open("uploads/utterance.webm", "rb") as utteranceFile:
-            transcript = openai.Audio.transcribe("whisper-1", utteranceFile)
-
-        try:
-            os.remove("uploads/utterance.webm")
-        except FileNotFoundError as fnfe:
-            pass
-
-        return json.dumps(transcript)
 
     @app.route("/get_json_translation", methods=["POST"])
     def getJSONTranslation():
@@ -84,7 +55,7 @@ heart_rate: heart rate in beats per minute
 respiratory_rate: respiratory rate in breaths per minute
 height: height in centimeters
 weight: weight in kilograms
-""".format(request.form["utterance_text"])
+""".format(request.form["patient_note_text"])
         jsonString = openai.Completion.create(
             model="text-davinci-003",
             prompt=requestText,

@@ -3,66 +3,10 @@
 	<title>Test Record</title>
 	<script>
 
-		const handleSuccess = (stream) => {
-
-			const startButton = document.getElementById('start');
-			const stopButton = document.getElementById('stop');
-			const player = document.getElementById('player');
-
-			const options = {mimeType: 'audio/webm'};
-			const recordedChunks = [];
-			const mediaRecorder = new MediaRecorder(stream, options);
-
-			mediaRecorder.addEventListener('dataavailable', (e) => {
-				if (e.data.size > 0) {
-					recordedChunks.push(e.data);
-				}
-			});
-
-			mediaRecorder.addEventListener('stop', () => {
-
-				startButton.removeAttribute("disabled");
-				stopButton.setAttribute("disabled", "true");
-				console.log("Stopped recording.");
-
-				let formData = new FormData();
-				formData.append("utterance_file", new File(recordedChunks, "test.webm"));
-				getUtteranceData(formData);
-
-				formData = new FormData();
-				formData.append("utterance_text", document.getElementById("utteranceBox").value);
-				getJSONResultData(formData);
-			});
-
-			stopButton.addEventListener("click", () => {
-				mediaRecorder.stop();
-			});
-
-			startButton.setAttribute("disabled", "true");
-			stopButton.removeAttribute("disabled");
-    			mediaRecorder.start();
-  		};
-
-		const startRecord = () => {
-			navigator.mediaDevices
-			.getUserMedia({audio: true, video: false})
-			.then(handleSuccess);
-		};
-
-		const getUtteranceData = (formData) => {
-			fetch(
-				"/upload_utterance",
-				{
-					"method": "POST",
-					"body": formData
-				}
-			).then(
-				response => response.json()
-			).then(
-				(data) => {
-					document.getElementById("utteranceBox").value = data["text"];
-				}
-			);
+		const submitForm = () => {
+			formData = new FormData();
+			formData.append("patient_note_text", document.getElementById("patientNoteBox").value);
+			getJSONResultData(formData);
 		}
 
 		const getJSONResultData = (formData) => {
@@ -76,7 +20,7 @@
 				response => response.json()
 			).then(
 				(data) => {
-					document.getElementById("jsonDataBox").value = data["choices"][0]["text"];
+					document.getElementById("jsonDataSection").innerHTML = data["choices"][0]["text"];
 					dataJSON = JSON.parse(data["choices"][0]["text"]);
 					for (key in dataJSON) {
 						if (dataJSON[key]) {
@@ -90,13 +34,11 @@
 </head>
 <body>
 
-<audio id="player" controls></audio><br />
-<input type="button" value="Start" id="start" onclick="startRecord();" />
-<input type="button" value="Stop" id="stop" disabled />
+<textarea rows=10 cols=50 id="patientNoteBox"></textarea>
 <p>
-<textarea id="utteranceBox"></textarea>
+<input type="button" value="Submit" onclick="submitForm();">
 <p>
-<textarea id="jsonDataBox"></textarea>
+<pre id="jsonDataSection"></pre>
 <p>
 <table>
 	<tr>
