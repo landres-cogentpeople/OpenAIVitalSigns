@@ -1,14 +1,33 @@
+<!--
+	vital_signs.html
+	Save in static folder of project directory.
+-->
 <html>
 <head>
 	<title>Test Record</title>
 	<script>
-
+		// submitForm: Takes text from the patientNoteBox and calls getJSONResultData to populate
+		//             the jsonDataSection.
 		const submitForm = () => {
 			formData = new FormData();
 			formData.append("patient_note_text", document.getElementById("patientNoteBox").value);
 			getJSONResultData(formData);
 		}
 
+		// doJSONResultUpdate: Takes JSON data in string (text) format and parses into display section
+		//                     and fields.
+		const doJSONResultUpdate = (textData) => {
+			document.getElementById("jsonDataSection").innerHTML = textData;
+			dataJSON = JSON.parse(textData);
+			for (key in dataJSON) {
+				if (dataJSON[key]) {
+					document.getElementById(key).value = dataJSON[key];
+				}
+			}
+		}
+
+		// getJSONResultData: Takes form data as a parameter and submits to the /get_json_translation
+		//                    endpoint to parse the freeform text into JSON data.
 		const getJSONResultData = (formData) => {
 			fetch(
 				"/get_json_translation",
@@ -20,13 +39,7 @@
 				response => response.json()
 			).then(
 				(data) => {
-					document.getElementById("jsonDataSection").innerHTML = data["choices"][0]["text"];
-					dataJSON = JSON.parse(data["choices"][0]["text"]);
-					for (key in dataJSON) {
-						if (dataJSON[key]) {
-							document.getElementById(key).value = dataJSON[key];
-						}
-					}
+					doJSONResultUpdate(data["choices"][0]["text"]);
 				}
 			);
 		}
